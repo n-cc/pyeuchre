@@ -1,8 +1,9 @@
 """pyeuchre command-line utility."""
 
-import sys
+from pyeuchre.game import Game
 
 
 def main() -> None:
     """Main CLI entrypoint."""
-    sys.exit(0)
+    game = Game()
+    print(game.hand)

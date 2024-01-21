@@ -1,7 +1,7 @@
 """Exceptions."""
 
 
-class InvalidCardError(Exception):
-    """Indicates an invalid card was attempted to be instantiated."""
+class DeckExhaustedError(Exception):
+    """Indicates the deck would have been exhausted with the requested number of cards to deal."""
 
     pass

@@ -1,37 +1,22 @@
 """Classes pertaining to cards."""
 
 import random
+import typing
 
-from exceptions import InvalidCardError
-
-
-RANKS = {
-    "8": "eight",
-    "9": "nine",
-    "10": "ten",
-    "j": "jack",
-    "q": "queen",
-    "k": "king",
-    "a": "ace",
-}
-
-SUITS = {"h": "hearts", "d": "diamonds", "c": "clubs", "s": "spades"}
+from pyeuchre.exceptions import DeckExhaustedError
 
 
 class Rank:
     """Represents a card's rank."""
 
-    def __init__(self, rank: str) -> None:
+    def __init__(self, rank: tuple[str, str]) -> None:
         """Initialize rank.
 
         Args:
-            rank (str): Rank of the rank.
+            rank (tuple): Short and long format of rank.
         """
-        if rank not in RANKS.keys():
-            raise InvalidCardError(f"invalid rank: {rank}")
-
-        self.short = rank
-        self.long = RANKS[rank]
+        self.short = rank[0]
+        self.long = rank[1]
 
     def __str__(self) -> str:
         """Return rank as a string."""
@@ -49,13 +34,10 @@ class Suit:
         """Initialize suit.
 
         Args:
-            suit (str): Suit of the suit.
+            suit (tuple): Short and long format of suit.
         """
-        if suit not in SUITS.keys():
-            raise InvalidCardError(f"invalid suit: {suit}")
-
-        self.short = suit
-        self.long = SUITS[suit]
+        self.short = suit[0]
+        self.long = suit[1]
 
     def __str__(self) -> str:
         """Return suit as a printable string."""
@@ -93,11 +75,30 @@ class Deck:
 
     def __init__(self) -> None:
         """Initialize (build) a deck."""
-        self.cards = [
-            Card(Suit(suit), Rank(rank))
-            for suit in SUITS.keys()
-            for rank in RANKS.keys()
+        self._ranks = [
+            Rank(rank)
+            for rank in [
+                ("8", "eight"),
+                ("9", "nine"),
+                ("10", "ten"),
+                ("j", "jack"),
+                ("q", "queen"),
+                ("k", "king"),
+                ("a", "ace"),
+            ]
         ]
+
+        self._suits = [
+            Suit(suit)
+            for suit in [
+                ("h", "hearts"),
+                ("d", "diamonds"),
+                ("c", "clubs"),
+                ("s", "spades"),
+            ]
+        ]
+
+        self.cards = [Card(suit, rank) for suit in self._suits for rank in self._ranks]
 
     def shuffle(self) -> None:
         """Shuffle the deck.
@@ -105,6 +106,21 @@ class Deck:
         TODO: Implement deck cutting.
         """
         random.shuffle(self.cards)
+
+    def deal(self, n: int = 1) -> typing.Generator[Card, None, None]:
+        """Deal X number of cards, removing them from the deck.
+
+        Args:
+            n (int): Number of cards to deal from the deck.
+
+        Returns:
+            Generator of Cards.
+        """
+        if len(self.cards) < n:
+            raise DeckExhaustedError
+
+        for _i in range(n):
+            yield self.cards.pop()
 
     def __str__(self) -> str:
         """Return deck as a printable string."""

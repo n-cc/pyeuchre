@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from cards import Deck
+from pyeuchre.cards import Card
+from pyeuchre.cards import Deck
 
 
 class Game:
@@ -11,60 +12,106 @@ class Game:
     def __init__(
         self,
         teams: tuple[Team, Team] | None = None,
-        trick: Trick | None = None,
+        hand: Hand | None = None,
     ) -> None:
         """Initialize game.
 
         Args:
             teams (tuple): A tuple of two teams.
-            trick: (Trick): A custom trick to start the game on.
+            hand: (Hand): A custom hand to start the game on.
         """
         if teams:
             self.teams = teams
         else:
             self.teams = (
-                Team(Player("North"), Player("South")),
-                Team(Player("East"), Player("West")),
+                Team((Player("North"), Player("South"))),
+                Team((Player("East"), Player("West"))),
             )
 
+        self.hand = self.start_hand()
+
     def __str__(self) -> str:
-        """Return Game as a printable string."""
+        """Return Game as a printable string.
+
+        TODO get much better printing here.
+        """
         return self.teams
 
     def __repr__(self) -> str:
         """Return Game as a printable object string."""
         return f"{type(self).__name__}(name={self.teams})"
 
+    def start_hand(self) -> Hand:
+        """Begin a hand."""
+        return Hand(self.teams)
 
-class Trick:
-    """Represents a trick."""
+
+class Hand:
+    """Represents a hand."""
 
     def __init__(
-        self, plays: tuple[int, int] | None = None, deck: Deck | None = None
+        self,
+        teams: tuple[Team, Team],
+        tricks: tuple[int, int] | None = None,
+        deck: Deck | None = None,
+        shuffle_deck: bool = True,
     ) -> None:
-        """Initialize trick.
+        """Initialize hand.
 
         Args:
-            plays (tuple): Number of taken tricks for each team for this trick.
+            teams (tuple): Tuple of two Teams participating in this hand.
+            tricks (tuple): Number of taken tricks for each team for this hand.
             deck (Deck): Custom deck to use.
+            shuffle_deck (bool): Whether to auto-shuffle the deck.
         """
-        if plays:
-            self.plays = plays
+        self.teams = teams
+        self.lead: Card = None
+        self.kitty = []
+
+        if tricks:
+            self.tricks = tricks
         else:
-            self.plays = [0, 0]
+            self.tricks = [0, 0]
 
         if deck:
             self.deck = deck
         else:
-            self.deck = Deck(deck)
+            self.deck = Deck()
+
+        if shuffle_deck:
+            self.deck.shuffle()
+
+        self.deal_trick()
 
     def __str__(self) -> str:
-        """Return Trick as a printable string."""
-        pass
+        """Return Trick as a printable string.
+
+        TODO get much better printing here.
+        """
+        print([team.players for team in self.teams])
+        return "Teams:{teams}\nTricks:{tricks}Lead:{lead}\nCards:{cards}".format(
+            teams=self.teams,
+            tricks=self.tricks,
+            lead=self.lead,
+            cards=[
+                f"{player.name}: {[card for card in player.hand]}"
+                for team in self.teams
+                for player in team.players
+            ],
+        )
 
     def __repr__(self) -> str:
-        """Return Trick as a printable string."""
-        pass
+        """Return Hand as a printable string."""
+        return f"{type(self).__name__}(lead={self.lead})"
+
+    def deal_trick(self) -> None:
+        """Deals a trick."""
+        for team in self.teams:
+            for player in team.players:
+                player.hand = list(self.deck.deal(5))
+
+        self.lead = list(self.deck.deal(1))
+        self.kitty = list(self.deck.deal(3))
 
 
 class Player:
@@ -77,6 +124,7 @@ class Player:
             name (str): Player's display name.
         """
         self.name = name
+        self.hand = []
 
     def __str__(self) -> str:
         """Return Player as a printable string."""
