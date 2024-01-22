@@ -1,4 +1,4 @@
-"""Classes pertaining to players."""
+"""Classes pertaining to players and groups of players."""
 
 
 import typing
@@ -22,6 +22,7 @@ class Player:
         """
         self.name = name
         self.cards: list[Card] = []
+        self.skip: False
 
     def __str__(self) -> str:
         """Return Player as a printable string."""
@@ -30,6 +31,10 @@ class Player:
     def __repr__(self) -> str:
         """Return Player as a printable string."""
         return f"{type(self).__name__}(name={self.name})"
+
+    def request_loner(self, hand: "Hand") -> bool:  # noqa: N803
+        """Request a player to decide if they want go alone."""
+        raise NotImplementedError
 
     def request_trump_call(self, hand: "Hand") -> bool:  # noqa: N803
         """Request a player to decide if they want to call a face up trump value."""
@@ -43,7 +48,7 @@ class Player:
         """Request a player to play a card.
 
         Args:
-            hand (Hand): Game object that the player can use for context when making a decision.
+            hand (Hand): Hand object that the player can use for context when making a decision.
         """
         raise NotImplementedError
 
@@ -60,6 +65,14 @@ class Human(Player):
         # TODO flesh this out more
         card = input("Card number?")
         return self.cards[card]  # type: ignore [no-any-return,call-overload]
+
+    def request_loner(self, hand: "Hand") -> bool:  # noqa: N803
+        """Request a player to decide if they want go alone."""
+        r = input(f"{self.name}: go alone (y/n)? ")
+
+        if r in ["Y", "y"]:
+            return True
+        return False
 
     def request_trump_call(self, hand: "Hand") -> bool:  # noqa: N803
         """Request a human player to call a trump suit.
@@ -89,7 +102,7 @@ class Bot(Player):
         """Request a bot player to play a card.
 
         Args:
-            hand (Hand): Game object that the player can use for context when making a decision.
+            hand (Hand): Hand object that the player can use for context when making a decision.
         """
         # TODO write code here - subclass again for varying bot strengths?
         return self.cards[0]
@@ -120,14 +133,25 @@ class Team:
         """Return Team as a printable object string."""
         return f"{type(self).__name__}(players={self.players})"
 
+    def __getitem__(self, i):
+        """Return self.players if self is treated as a list."""
+        return self.players[i]
+
+    def get_partner(self, player: Player) -> Player:
+        """Given a player, get their partner."""
+        for player in self.players:
+            if player is not Player:
+                return player
+
+        # TODO raise custom exception or return None?
+        raise IndexError
+
 
 class Players:
-    """Represents a group of players."""
+    """Represents a group of players within teams."""
 
     def __init__(self, teams: tuple[Team, Team]) -> None:
         """Initialize players.
-
-        TODO __iter__ method to loop over players
 
         Args:
             teams (tuple): Tuple of teams.
@@ -141,6 +165,10 @@ class Players:
             self.players.append(self.teams[1].players[i])
 
         self._dealer_index = 0
+
+    def __getitem__(self, i):
+        """Return self.players if self is treated as a list."""
+        return self.players[i]
 
     @property
     def start_player(self) -> Player:

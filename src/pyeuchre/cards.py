@@ -20,7 +20,7 @@ class Rank:
 
     def __str__(self) -> str:
         """Return rank as a string."""
-        return self.long.title()
+        return self.short.title()
 
     def __repr__(self) -> str:
         """Return rank as a printable object string."""
@@ -41,7 +41,7 @@ class Suit:
 
     def __str__(self) -> str:
         """Return suit as a printable string."""
-        return self.long.title()
+        return self.short.title()
 
     def __repr__(self) -> str:
         """Return suit as a printable object string."""
@@ -63,7 +63,7 @@ class Card:
 
     def __str__(self) -> str:
         """Return card as a printable string."""
-        return f"{self.rank} of {self.suit}"
+        return f"{self.rank}{self.suit}"
 
     def __repr__(self) -> str:
         """Return card as a printable object string."""
@@ -91,10 +91,10 @@ class Deck:
         self._suits = [
             Suit(suit)
             for suit in [
-                ("h", "hearts"),
-                ("d", "diamonds"),
-                ("c", "clubs"),
-                ("s", "spades"),
+                ("♥", "hearts"),
+                ("♦", "diamonds"),
+                ("♣", "clubs"),
+                ("♠", "spades"),
             ]
         ]
 

@@ -9,10 +9,15 @@ def main() -> None:
     Major revamp needed with click; cli is only used for testing classes currently.
     """
     game = Game()
-    game.deal_hand()
 
-    if game.hand:  # TODO fix mypy here
-        while game.hand.active:
+    while game.active:
+        game.deal_hand()
+
+        if game.hand:  # TODO fix mypy here
             print(game.hand)
-            if game.hand.process_call_trump():
+            game.hand.process_call_trump()
+
+            if game.hand.trump_team:
                 print(f"{game.hand.trump_team} call trump!")
+            if game.hand.loner_player:
+                print(f"{game.hand.loner_player} goes alone!")
