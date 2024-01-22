@@ -54,10 +54,6 @@ class Game:
         """Begin a hand."""
         self.hand = Hand(self.players)
 
-    def shift_dealer(self) -> None:
-        """Rotates dealers through the player list."""
-        raise NotImplementedError
-
 
 class Hand:
     """Represents a hand."""
@@ -65,7 +61,6 @@ class Hand:
     def __init__(
         self,
         players: Players,
-        tricks: tuple[int, int] | None = None,
         deck: Deck | None = None,
         shuffle_deck: bool = True,
     ) -> None:
@@ -73,7 +68,6 @@ class Hand:
 
         Args:
             players (Players): Players for this hand.
-            tricks (tuple): Number of taken tricks for each team for this hand.
             deck (Deck): Custom deck to use.
             shuffle_deck (bool): Whether to auto-shuffle the deck.
         """
@@ -81,10 +75,7 @@ class Hand:
         self.lead: Card | None = None
         self.kitty: list[Card] = []
 
-        if tricks:
-            self.tricks = tricks
-        else:
-            self.tricks = (0, 0)
+        self.trump_team: Team | None = None
 
         if deck:
             self.deck = deck
@@ -94,19 +85,18 @@ class Hand:
         if shuffle_deck:
             self.deck.shuffle()
 
-        self.deal_trick()
+        self.deal()
 
     def __str__(self) -> str:
         """Return Trick as a printable string.
 
         TODO get much better printing here.
         """
-        return "Players: {players}\n\nTricks: {tricks}\n\nLead: {lead}\n\nCards: {cards}".format(
+        return "Players: {players}\n\nLead: {lead}\n\nCards: {cards}".format(
             players=self.players.teams,
-            tricks=self.tricks,
             lead=self.lead,
             cards=[
-                f"{player.name}: {[card for card in player.hand]}"
+                f"{player.name}: {[card for card in player.cards]}"
                 for player in self.players.players
             ],
         )
@@ -115,14 +105,31 @@ class Hand:
         """Return Hand as a printable string."""
         return f"{type(self).__name__}(lead={self.lead})"
 
-    def deal_trick(self) -> None:
-        """Deals a trick."""
+    @property
+    def active(self) -> bool:
+        """Determine whether a hand is active."""
         for player in self.players.players:
-            player.hand = list(self.deck.deal(5))
+            if len(player.cards) > 0:
+                return True
+
+        return False
+
+    def deal(self) -> None:
+        """Deals hand."""
+        for player in self.players.players:
+            player.cards = list(self.deck.deal(5))
 
         self.lead = next(self.deck.deal(1))
         self.kitty = list(self.deck.deal(3))
 
-    def decide_trump(self) -> None:
-        """Initiates the trump deciding procedure."""
-        raise NotImplementedError
+    def process_call_trump(self) -> bool:
+        """Processes calling trump.
+
+        Returns True if a team calls trump.
+        """
+        for player in self.players.players_ordered(self.players.start_player):
+            if player.request_trump_call(self):
+                self.trump_team = self.players.get_team(player)
+                return True
+
+        return False
