@@ -30,7 +30,7 @@ class Rank:
 class Suit:
     """Represents a suit."""
 
-    def __init__(self, suit: str) -> None:
+    def __init__(self, suit: tuple[str, str]) -> None:
         """Initialize suit.
 
         Args:
