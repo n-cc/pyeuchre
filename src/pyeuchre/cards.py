@@ -48,6 +48,30 @@ class Suit:
         return f"{type(self).__name__}(short={self.short})"
 
 
+SUITS = [
+    Suit(suit)
+    for suit in [
+        ("♥", "hearts"),
+        ("♦", "diamonds"),
+        ("♣", "clubs"),
+        ("♠", "spades"),
+    ]
+]
+
+RANKS = [
+    Rank(rank)
+    for rank in [
+        ("8", "eight"),
+        ("9", "nine"),
+        ("10", "ten"),
+        ("j", "jack"),
+        ("q", "queen"),
+        ("k", "king"),
+        ("a", "ace"),
+    ]
+]
+
+
 class Card:
     """Represents a card."""
 
@@ -75,30 +99,7 @@ class Deck:
 
     def __init__(self) -> None:
         """Initialize (build) a deck."""
-        self._ranks = [
-            Rank(rank)
-            for rank in [
-                ("8", "eight"),
-                ("9", "nine"),
-                ("10", "ten"),
-                ("j", "jack"),
-                ("q", "queen"),
-                ("k", "king"),
-                ("a", "ace"),
-            ]
-        ]
-
-        self._suits = [
-            Suit(suit)
-            for suit in [
-                ("♥", "hearts"),
-                ("♦", "diamonds"),
-                ("♣", "clubs"),
-                ("♠", "spades"),
-            ]
-        ]
-
-        self.cards = [Card(suit, rank) for suit in self._suits for rank in self._ranks]
+        self.cards = [Card(suit, rank) for suit in SUITS for rank in RANKS]
 
     def shuffle(self) -> None:
         """Shuffle the deck.

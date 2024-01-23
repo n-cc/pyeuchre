@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pyeuchre.cards import Card
 from pyeuchre.cards import Deck
-from pyeuchre.player import Human
-from pyeuchre.player import Player
-from pyeuchre.player import Players
-from pyeuchre.player import Team
+from pyeuchre.people.groups import Players
+from pyeuchre.people.groups import Team
+from pyeuchre.people.players import Human
+from pyeuchre.people.players import Player
 
 
 class Game:
