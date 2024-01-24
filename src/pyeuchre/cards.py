@@ -18,6 +18,13 @@ class Rank:
         self.short = rank[0]
         self.long = rank[1]
 
+    def __eq__(self, other: object) -> bool:
+        """Is this rank the same as another rank."""
+        if not isinstance(other, Rank):
+            raise NotImplementedError
+
+        return self.long == other.long
+
     def __str__(self) -> str:
         """Return rank as a string."""
         return self.short.title()
@@ -30,18 +37,26 @@ class Rank:
 class Suit:
     """Represents a suit."""
 
-    def __init__(self, suit: tuple[str, str]) -> None:
+    def __init__(self, suit: tuple[str, str, str]) -> None:
         """Initialize suit.
 
         Args:
-            suit (tuple): Short and long format of suit.
+            suit (tuple): Short, "ascii", and long format of suit.
         """
         self.short = suit[0]
-        self.long = suit[1]
+        self.ascii = suit[1]
+        self.long = suit[2]
+
+    def __eq__(self, other: object) -> bool:
+        """Is this suit the same as another suit."""
+        if not isinstance(other, Suit):
+            raise NotImplementedError
+
+        return self.long == other.long
 
     def __str__(self) -> str:
         """Return suit as a printable string."""
-        return self.short.title()
+        return self.ascii
 
     def __repr__(self) -> str:
         """Return suit as a printable object string."""
@@ -51,10 +66,10 @@ class Suit:
 SUITS = [
     Suit(suit)
     for suit in [
-        ("♥", "hearts"),
-        ("♦", "diamonds"),
-        ("♣", "clubs"),
-        ("♠", "spades"),
+        ("h", "♥", "hearts"),
+        ("d", "♦", "diamonds"),
+        ("c", "♣", "clubs"),
+        ("s", "♠", "spades"),
     ]
 ]
 
@@ -84,6 +99,13 @@ class Card:
         """
         self.suit = suit
         self.rank = rank
+
+    def __eq__(self, other: object) -> bool:
+        """Is this card the same as another card."""
+        if not isinstance(other, Card):
+            raise NotImplementedError
+
+        return self.suit == other.suit and self.rank == other.rank
 
     def __str__(self) -> str:
         """Return card as a printable string."""

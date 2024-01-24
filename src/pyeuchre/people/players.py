@@ -4,6 +4,7 @@ import typing
 
 from pyeuchre.cards import Card
 from pyeuchre.utility.input import parse_bool
+from pyeuchre.utility.input import parse_card
 
 
 # only import Hand for typing purposes within the Player class - avoid circular imports
@@ -44,7 +45,11 @@ class Player:
         """Request a player to decide if they want to choose a trump."""
         raise NotImplementedError
 
-    def request_card(self, hand: "Hand") -> Card:
+    def request_replace_card(self, hand: "Hand", card: Card) -> Card:  # noqa: N803
+        """Request a player choose a card to replace."""
+        raise NotImplementedError
+
+    def request_play_card(self, hand: "Hand") -> Card:
         """Request a player to play a card.
 
         Args:
@@ -56,7 +61,7 @@ class Player:
 class Human(Player):
     """Represents a human player."""
 
-    def request_card(self, hand: "Hand") -> Card:
+    def request_play_card(self, hand: "Hand") -> Card:
         """Request a human player to play a card.
 
         Args:
@@ -65,6 +70,10 @@ class Human(Player):
         # TODO flesh this out more - add a new utility/input function to parse input into a card
         card = input("Card number?")
         return self.cards[card]  # type: ignore [no-any-return,call-overload]
+
+    def request_replace_card(self, hand: "Hand", card: Card) -> Card:  # noqa: N803
+        """Request a player choose a card to replace."""
+        return parse_card(input(f"{self.name}: which card to replace? "))
 
     def request_loner(self, hand: "Hand") -> bool:  # noqa: N803
         """Request a player to decide if they want go alone."""
@@ -90,7 +99,7 @@ class Human(Player):
 class Bot(Player):
     """Represents a bot player."""
 
-    def request_card(self, hand: "Hand") -> Card:
+    def request_play_card(self, hand: "Hand") -> Card:
         """Request a bot player to play a card.
 
         Args:
