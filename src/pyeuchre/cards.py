@@ -76,7 +76,6 @@ SUITS = [
 RANKS = [
     Rank(rank)
     for rank in [
-        ("8", "eight"),
         ("9", "nine"),
         ("10", "ten"),
         ("j", "jack"),

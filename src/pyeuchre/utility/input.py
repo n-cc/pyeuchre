@@ -16,7 +16,46 @@ def parse_bool(s: str) -> bool:
     Args:
         s (str): Input to parse.
     """
-    return s.lower() in ["y", "yes"]
+    if s.lower() in ["n", "no"]:
+        return False
+    if s.lower() in ["y", "yes"]:
+        return True
+
+    raise InvalidInputError
+
+
+def parse_suit(s: str) -> Suit:
+    """Parses input for a suit.
+
+    Args:
+        s (str): Input to parse.
+    """
+    r = re.search(r"([A-Za-z]+)", s)
+    if not r or not r[1]:
+        raise InvalidInputError
+
+    for suit in SUITS:
+        if r[1] in [suit.short, suit.ascii, suit.long]:
+            return suit
+
+    raise InvalidInputError
+
+
+def parse_rank(s: str) -> Rank:
+    """Parses input for a rank.
+
+    Args:
+        s (str): Input to parse.
+    """
+    r = re.search(r"([A-Za-z]+|[0-9]+)", s)
+    if not r or not r[1]:
+        raise InvalidInputError
+
+    for rank in RANKS:
+        if r[1] in [rank.short, rank.long]:
+            return rank
+
+    raise InvalidInputError
 
 
 def parse_card(s: str) -> Card:
@@ -25,25 +64,8 @@ def parse_card(s: str) -> Card:
     Args:
         s (str): Input to parse.
     """
-    r = re.search(r"([A-Za-z]+|[0-9]+)\s?o?f?\s?([A-Za-z]+)", s)
+    r = re.search(r"([A-Za-z]+|[0-9]+)\s*o?f?\s*([A-Za-z]+)", s)
     if not r or not r[1] or not r[2]:
         raise InvalidInputError
 
-    s_rank = r[1]
-    s_suit = r[2]
-
-    c_rank: Rank | None = None
-    c_suit: Suit | None = None
-
-    for rank in RANKS:
-        if s_rank in [rank.short, rank.long]:
-            c_rank = rank
-
-    for suit in SUITS:
-        if s_suit in [suit.short, suit.ascii, suit.long]:
-            c_suit = suit
-
-    if not c_rank or not c_suit:
-        raise InvalidInputError
-
-    return Card(c_suit, c_rank)
+    return Card(parse_suit(r[2]), parse_rank(r[1]))

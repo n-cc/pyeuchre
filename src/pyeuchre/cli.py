@@ -19,5 +19,5 @@ def main() -> None:
 
             if game.hand.trump_team:
                 print(f"{game.hand.trump_team} call trump!")
-            if game.hand.loner_player:
-                print(f"{game.hand.loner_player} goes alone!")
+                if game.hand.loner_player:
+                    print(f"{game.hand.loner_player} goes alone!")

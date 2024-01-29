@@ -140,8 +140,18 @@ class Hand:
         """Processes calling trump."""
         for player in self.players.players_ordered(self.players.start_player):
             if player.request_trump_call(self):
+                player.request_replace_card(self)
                 self.trump_team = self.players.get_team(player)
                 if player.request_loner(self):
                     self.loner_player = player
                     self.players.get_team(player).get_partner(player).skip = True
-                break
+                return None
+
+        for player in self.players.players_ordered(self.players.start_player):
+            if player.request_trump_choose(self):
+                self.trump_team = self.players.get_team(player)
+                if player.request_loner(self):
+                    self.loner_player = player
+                    self.players.get_team(player).get_partner(player).skip = True
+                return None
+        # TODO add third option based on whether we are playing with STD or not
