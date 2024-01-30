@@ -16,9 +16,9 @@ def parse_bool(s: str) -> bool:
     Args:
         s (str): Input to parse.
     """
-    if s.lower() in ["n", "no"]:
+    if s.lower().strip() in ["n", "no"]:
         return False
-    if s.lower() in ["y", "yes"]:
+    if s.lower().strip() in ["y", "yes"]:
         return True
 
     raise InvalidInputError
@@ -35,7 +35,7 @@ def parse_suit(s: str) -> Suit:
         raise InvalidInputError
 
     for suit in SUITS:
-        if r[1] in [suit.short, suit.ascii, suit.long]:
+        if r[1].lower() in [suit.short, suit.ascii, suit.long]:
             return suit
 
     raise InvalidInputError
@@ -52,7 +52,7 @@ def parse_rank(s: str) -> Rank:
         raise InvalidInputError
 
     for rank in RANKS:
-        if r[1] in [rank.short, rank.long]:
+        if r[1].lower() in [rank.short, rank.long]:
             return rank
 
     raise InvalidInputError
@@ -68,4 +68,4 @@ def parse_card(s: str) -> Card:
     if not r or not r[1] or not r[2]:
         raise InvalidInputError
 
-    return Card(parse_suit(r[2]), parse_rank(r[1]))
+    return Card(parse_suit(r[2].lower()), parse_rank(r[1].lower()))

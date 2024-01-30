@@ -140,7 +140,7 @@ class Hand:
         """Processes calling trump."""
         for player in self.players.players_ordered(self.players.start_player):
             if player.request_trump_call(self):
-                player.request_replace_card(self)
+                player.request_replace_card(self, self.lead)
                 self.trump_team = self.players.get_team(player)
                 if player.request_loner(self):
                     self.loner_player = player
@@ -148,7 +148,7 @@ class Hand:
                 return None
 
         for player in self.players.players_ordered(self.players.start_player):
-            if player.request_trump_choose(self):
+            if player.request_trump_choose(self, self.players.dealer):
                 self.trump_team = self.players.get_team(player)
                 if player.request_loner(self):
                     self.loner_player = player

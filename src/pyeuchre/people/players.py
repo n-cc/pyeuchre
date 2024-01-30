@@ -72,7 +72,7 @@ class Human(Player):
         """
         raise NotImplementedError
 
-    def request_replace_card(self, hand: "Hand") -> None:  # noqa: N803
+    def request_replace_card(self, hand: "Hand", card: Card) -> None:  # noqa: N803
         """Request a player replace a card in their hand with a new card."""
         while True:
             try:
@@ -85,7 +85,7 @@ class Human(Player):
 
             for i, held_card in enumerate(self.cards):
                 if held_card == replace_card:
-                    self.cards[i] = hand.lead  # type: ignore[assignment]
+                    self.cards[i] = card  # type: ignore[assignment]
                     return None
             else:
                 print(f"Card not in hand: {replace_card}")
@@ -110,7 +110,7 @@ class Human(Player):
             except InvalidInputError:
                 print("Invalid choice.")
 
-    def request_trump_choose(self, hand: "Hand") -> Suit | None:  # noqa: N803
+    def request_trump_choose(self, hand: "Hand", dealer: Player) -> Suit | None:  # noqa: N803
         """Request a human player to choose a trump suit.
 
         Args:
@@ -121,7 +121,7 @@ class Human(Player):
                 choice = input(f"{self.name}: call a suit (suit/n)? ")
                 try:
                     if not parse_bool(choice):
-                        if hand.players.dealer is not self:
+                        if dealer is not self:
                             return None
                         else:
                             print("You must choose a suit!")
