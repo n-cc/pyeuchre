@@ -21,3 +21,5 @@ def main() -> None:
                 print(f"{game.hand.trump_team} call trump!")
                 if game.hand.loner_player:
                     print(f"{game.hand.loner_player} goes alone!")
+            
+            game.hand.start_trick()

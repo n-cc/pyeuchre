@@ -1,4 +1,4 @@
-"""Classes pertaining to cards."""
+"""Classes and functions pertaining to cards."""
 
 import random
 import typing
@@ -9,14 +9,16 @@ from pyeuchre.exceptions import DeckExhaustedError
 class Rank:
     """Represents a card's rank."""
 
-    def __init__(self, rank: tuple[str, str]) -> None:
+    def __init__(self, rank: tuple[int, bool, str, str]) -> None:
         """Initialize rank.
 
         Args:
-            rank (tuple): Short and long format of rank.
+            rank (tuple): Weight, trumper status (ie jack), short and long format for rank.
         """
-        self.short = rank[0]
-        self.long = rank[1]
+        self.weight = rank[0]
+        self.trumper = rank[1]
+        self.short = rank[2]
+        self.long = rank[3]
 
     def __eq__(self, other: object) -> bool:
         """Is this rank the same as another rank."""
@@ -24,6 +26,20 @@ class Rank:
             raise NotImplementedError
 
         return self.long == other.long
+
+    def __gt__(self, other: object) -> bool:
+        """Is this rank greater than another rank."""
+        if not isinstance(other, Rank):
+            raise NotImplementedError
+
+        return self.weight > other.weight
+
+    def __lt__(self, other: object) -> bool:
+        """Is this rank less than another rank."""
+        if not isinstance(other, Rank):
+            raise NotImplementedError
+
+        return self.weight < other.weight
 
     def __str__(self) -> str:
         """Return rank as a string."""
@@ -37,15 +53,16 @@ class Rank:
 class Suit:
     """Represents a suit."""
 
-    def __init__(self, suit: tuple[str, str, str]) -> None:
+    def __init__(self, suit: tuple[int, str, str, str]) -> None:
         """Initialize suit.
 
         Args:
-            suit (tuple): Short, "ascii", and long format of suit.
+            suit (tuple): Color (as an int), short, "ascii", and long format of suit.
         """
-        self.short = suit[0]
-        self.ascii = suit[1]
-        self.long = suit[2]
+        self.color = suit[0]
+        self.short = suit[1]
+        self.ascii = suit[2]
+        self.long = suit[3]
 
     def __eq__(self, other: object) -> bool:
         """Is this suit the same as another suit."""
@@ -53,6 +70,13 @@ class Suit:
             raise NotImplementedError
 
         return self.long == other.long
+
+    def is_same_color(self, other: object) -> bool:
+        """Is this suit the same color as another suit."""
+        if not isinstance(other, Suit):
+            raise NotImplementedError
+
+        return self.color == other.color
 
     def __str__(self) -> str:
         """Return suit as a printable string."""
@@ -66,22 +90,22 @@ class Suit:
 SUITS = [
     Suit(suit)
     for suit in [
-        ("h", "♥", "hearts"),
-        ("d", "♦", "diamonds"),
-        ("c", "♣", "clubs"),
-        ("s", "♠", "spades"),
+        (0, "h", "♥", "hearts"),
+        (0, "d", "♦", "diamonds"),
+        (1, "c", "♣", "clubs"),
+        (1, "s", "♠", "spades"),
     ]
 ]
 
 RANKS = [
     Rank(rank)
     for rank in [
-        ("9", "nine"),
-        ("10", "ten"),
-        ("j", "jack"),
-        ("q", "queen"),
-        ("k", "king"),
-        ("a", "ace"),
+        (0, False, "9", "nine"),
+        (1, False, "10", "ten"),
+        (2, True, "j", "jack"),
+        (3, False, "q", "queen"),
+        (4, False, "k", "king"),
+        (5, False, "a", "ace"),
     ]
 ]
 
@@ -151,3 +175,12 @@ class Deck:
     def __repr__(self) -> str:
         """Return card as a printable object string."""
         return f"{type(self).__name__}(cards={self.cards}"
+
+
+def is_trump(card: Card, trump: Suit) -> bool:
+    """Given a trump suit, determines if a card is a trump or not."""
+    if card.suit == trump:
+        return True
+    if card.rank.trumper and card.suit.is_same_color(trump):
+        return True
+    return False

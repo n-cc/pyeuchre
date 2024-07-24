@@ -1,8 +1,9 @@
 """Tests for card functions and classes."""
 
 import pytest
-from pyeuchre.cards import Rank, RANKS, Suit, SUITS, Card, Deck
+from pyeuchre.cards import Rank, RANKS, Suit, SUITS, Card, Deck, is_trump
 
+# TODO add test for gt, lt, color comparisons for ranks and suits
 
 def test_rank_eq():
     for i in range(0, len(RANKS)):
@@ -71,3 +72,9 @@ def test_deck_deal():
 
     assert isinstance(list(deck.deal())[0], Card)
     assert len(deck.cards) == prev - 1
+
+def test_trump():
+    assert is_trump(Card(Suit((1, "s", "♠", "spades")), Rank((2, True, "j", "jack"))), Suit((1, "s", "♠", "spades")))
+    assert is_trump(Card(Suit((1, "s", "♠", "spades")), Rank((1, False, "10", "ten"))), Suit((1, "s", "♠", "spades")))
+    assert not is_trump(Card(Suit((0, "d", "♦", "diamonds")), Rank((2, True, "j", "jack"))), Suit((1, "s", "♠", "spades")))
+    assert not is_trump(Card(Suit((1, "c", "♣", "clubs")), Rank((1, False, "10", "ten"))), Suit((1, "s", "♠", "spades")))

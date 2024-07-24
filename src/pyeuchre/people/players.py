@@ -73,7 +73,7 @@ class Human(Player):
         raise NotImplementedError
 
     def request_replace_card(self, hand: "Hand", card: Card) -> None:  # noqa: N803
-        """Request a player replace a card in their hand with a new card."""
+        """Request a human player replace a card in their hand with a new card."""
         while True:
             try:
                 replace_card = parse_card(
@@ -91,7 +91,7 @@ class Human(Player):
                 print(f"Card not in hand: {replace_card}")
 
     def request_loner(self, hand: "Hand") -> bool:  # noqa: N803
-        """Request a player to decide if they want go alone."""
+        """Request a human player to decide if they want go alone."""
         while True:
             try:
                 return parse_bool(input(f"{self.name}: go alone (y/n)? "))
@@ -131,6 +131,21 @@ class Human(Player):
             except InvalidInputError:
                 print("Invalid choice.")
 
+    def request_play_card(self, hand: "Hand") -> Card:
+        """Request a human player to play a card.
+
+        args:
+            hand (Hand): Hand object that the player can use for context when making a decision.
+        """
+        while True:
+            try:
+                choice = input(f"{self.name}: Card to play? ")
+                card = parse_card(choice)
+                if card not in self.cards:
+                    raise InvalidInputError
+                return card
+            except InvalidInputError:
+                print("Invalid choice.")
 
 class Bot(Player):
     """Represents a bot player."""

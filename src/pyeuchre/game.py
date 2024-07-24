@@ -8,6 +8,7 @@ from pyeuchre.people.groups import Players
 from pyeuchre.people.groups import Team
 from pyeuchre.people.players import Human
 from pyeuchre.people.players import Player
+from pyeuchre.exceptions import NotActiveError
 
 
 class Game:
@@ -58,7 +59,10 @@ class Game:
 
     def deal_hand(self) -> None:
         """Begin a hand."""
-        self.hand = Hand(self.players)
+        if self.active:
+            self.hand = Hand(self.players)
+        else:
+            raise NotActiveError
 
 
 class Hand:
@@ -81,7 +85,11 @@ class Hand:
         self.lead: Card | None = None
         self.kitty: list[Card] = []
 
+        self.trick: Trick | None = None
+
         self.trump_team: Team | None = None
+        self.trump_suit: Suit | None = None
+
         self.loner_player: Player | None = None
 
         if deck:
@@ -138,8 +146,10 @@ class Hand:
 
     def process_call_trump(self) -> None:
         """Processes calling trump."""
+        # Let players pick the lead card up if desired
         for player in self.players.players_ordered(self.players.start_player):
             if player.request_trump_call(self):
+                self.trump_suit = self.lead.suit
                 player.request_replace_card(self, self.lead)
                 self.trump_team = self.players.get_team(player)
                 if player.request_loner(self):
@@ -147,11 +157,78 @@ class Hand:
                     self.players.get_team(player).get_partner(player).skip = True
                 return None
 
+        # If the lead card is not picked up, let players choose trump
         for player in self.players.players_ordered(self.players.start_player):
-            if player.request_trump_choose(self, self.players.dealer):
+            choice = player.request_trump_choose(self, self.players.dealer)
+            if choice:
+                self.suit = choice
                 self.trump_team = self.players.get_team(player)
                 if player.request_loner(self):
                     self.loner_player = player
                     self.players.get_team(player).get_partner(player).skip = True
                 return None
+
         # TODO add third option based on whether we are playing with STD or not
+
+    def start_trick(self) -> None:
+        """Starts the next trick."""
+        if self.active:
+            self.trick = Trick(self.trump_suit)
+        else:
+            raise NotActiveError
+
+    def record_trick(self) -> None:
+        """Parses the current trick to determine a winner."""
+
+
+class Trick:
+    """Represents a Trick."""
+    def __init__(self, trump: Suit) -> None:
+        """Init Trick."""
+        self.cards = []
+        self.suit: Suit | None = None
+
+    def __str__(self) -> str:
+        """Return Trick as a printable string.
+
+        TODO get much better printing here.
+        """
+        return f"{self.cards}"
+
+    def process_card() -> None:
+        if len(self.cards) == 0:
+            self.suit = card.suit
+        
+        self.cards.append(card)
+
+    @property
+    def winner():
+        cw = cards[0]
+        for card in cards[1:]:
+            # if this card is trump, and...
+            if is_trump(card, self.trump):
+                # ... the current winner is not trump
+                if not is_trump(cw, self.trump):
+                    cw = card
+                else:
+                    # ... this card is a "trumper (ie jack)", and...
+                    if card.trumper:
+                        # ... the current winner is not a trumper
+                        if not cw.trumper:
+                            cw = card
+                        # ... the current winner is a trumper, and...
+                        else:
+                            # ... this card has a higher rank than the current winner
+                            if card.rank > cw.rank:
+                                cw = card
+                            # ... this card is the exact same suit as the trump suit (left vs right bower)
+                            if card.suit == self.trump:
+                                cw = card
+                    # ... this card has a higher rank than the current winner
+                    elif card.rank > cw.rank:
+                        cw = card
+            # if this card is on suit and has a higher rank than the current winner
+            elif card.suit == self.suit and card.rank > cw.rank:
+                cw = card
+        return cw
+
