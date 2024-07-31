@@ -98,7 +98,16 @@ class Players:
         # TODO custom exception or return None?
         raise IndexError
 
-    def players_ordered(self, first: Player) -> typing.Generator[Player, None, None]:
+    def get_partner(self, player: Player) -> Player:
+        for team in self.teams:
+            try:
+                return team.get_partner(player)
+            except IndexError:
+                continue
+
+        raise IndexError
+
+    def ordered(self, first: Player) -> typing.Generator[Player, None, None]:
         """Yields players to play after (and including) first.
 
         Args:

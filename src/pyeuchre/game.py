@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from pyeuchre.cards import Card
 from pyeuchre.cards import Deck
+from pyeuchre.cards import is_trump
+from pyeuchre.exceptions import NotActiveError
 from pyeuchre.people.groups import Players
 from pyeuchre.people.groups import Team
 from pyeuchre.people.players import Human
 from pyeuchre.people.players import Player
-from pyeuchre.exceptions import NotActiveError
 
 
 class Game:
@@ -109,7 +110,10 @@ class Hand:
         """
         return "Players: {players}\n\nLead: {lead}\n\nHands:\n{cards}\n".format(
             players=" vs ".join(
-                [f"{team[0]} and {team[1]}" for team in self.players.teams]
+                [
+                    f"{team} ({team.score} points, {team.tricks} tricks)"
+                    for team in self.players.teams
+                ]
             ),
             lead=self.lead,
             cards="\n".join(
@@ -147,25 +151,25 @@ class Hand:
     def process_call_trump(self) -> None:
         """Processes calling trump."""
         # Let players pick the lead card up if desired
-        for player in self.players.players_ordered(self.players.start_player):
+        for player in self.players.ordered(self.players.start_player):
             if player.request_trump_call(self):
                 self.trump_suit = self.lead.suit
                 player.request_replace_card(self, self.lead)
                 self.trump_team = self.players.get_team(player)
                 if player.request_loner(self):
                     self.loner_player = player
-                    self.players.get_team(player).get_partner(player).skip = True
+                    self.players.get_partner(player).skip = True
                 return None
 
         # If the lead card is not picked up, let players choose trump
-        for player in self.players.players_ordered(self.players.start_player):
+        for player in self.players.ordered(self.players.start_player):
             choice = player.request_trump_choose(self, self.players.dealer)
             if choice:
                 self.suit = choice
                 self.trump_team = self.players.get_team(player)
                 if player.request_loner(self):
                     self.loner_player = player
-                    self.players.get_team(player).get_partner(player).skip = True
+                    self.players.get_partner(player).skip = True
                 return None
 
         # TODO add third option based on whether we are playing with STD or not
@@ -173,7 +177,7 @@ class Hand:
     def start_trick(self) -> None:
         """Starts the next trick."""
         if self.active:
-            self.trick = Trick(self.trump_suit)
+            self.trick = Trick(self, self.trump_suit)
         else:
             raise NotActiveError
 
@@ -183,9 +187,12 @@ class Hand:
 
 class Trick:
     """Represents a Trick."""
-    def __init__(self, trump: Suit) -> None:
+
+    def __init__(self, hand: Hand, trump: Suit) -> None:
         """Init Trick."""
+        self.hand: Hand = hand
         self.cards = []
+        self.trump: Suit = trump
         self.suit: Suit | None = None
 
     def __str__(self) -> str:
@@ -195,40 +202,53 @@ class Trick:
         """
         return f"{self.cards}"
 
-    def process_card() -> None:
-        if len(self.cards) == 0:
-            self.suit = card.suit
-        
-        self.cards.append(card)
+    def play(self) -> None:
+        for player in self.hand.players.ordered(self.hand.players.start_player):
+            if player.skip:
+                continue
 
-    @property
-    def winner():
-        cw = cards[0]
-        for card in cards[1:]:
+            card = player.request_play_card(self.hand)
+
+            if not self.suit:
+                self.suit = card.suit
+            self.cards.append({"player": player, "card": card})
+
+        wc = self.cards[0]["card"]
+        wp = self.cards[0]["player"]
+
+        for entry in self.cards[1:]:
+            card = entry["card"]
+            player = entry["player"]
             # if this card is trump, and...
             if is_trump(card, self.trump):
                 # ... the current winner is not trump
-                if not is_trump(cw, self.trump):
-                    cw = card
+                if not is_trump(wc, self.trump):
+                    wp = player
+                    wc = card
                 else:
                     # ... this card is a "trumper (ie jack)", and...
                     if card.trumper:
                         # ... the current winner is not a trumper
-                        if not cw.trumper:
-                            cw = card
+                        if not wc.trumper:
+                            wp = player
+                            wc = card
                         # ... the current winner is a trumper, and...
                         else:
                             # ... this card has a higher rank than the current winner
-                            if card.rank > cw.rank:
-                                cw = card
+                            if card.rank > wc.rank:
+                                wp = player
+                                wc = card
                             # ... this card is the exact same suit as the trump suit (left vs right bower)
                             if card.suit == self.trump:
-                                cw = card
+                                wp = player
+                                wc = card
                     # ... this card has a higher rank than the current winner
-                    elif card.rank > cw.rank:
-                        cw = card
+                    elif card.rank > wc.rank:
+                        wp = player
+                        wc = card
             # if this card is on suit and has a higher rank than the current winner
-            elif card.suit == self.suit and card.rank > cw.rank:
-                cw = card
-        return cw
+            elif card.suit == self.suit and card.rank > wc.rank:
+                wp = player
+                wc = card
 
+        self.hand.players.get_team(wp).tricks += 1
