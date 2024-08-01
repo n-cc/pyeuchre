@@ -3,6 +3,9 @@
 import random
 import typing
 
+from colorama import Fore
+from colorama import Style
+
 from pyeuchre.exceptions import DeckExhaustedError
 
 
@@ -80,6 +83,8 @@ class Suit:
 
     def __str__(self) -> str:
         """Return suit as a printable string."""
+        if self.color == 0:
+            return Fore.RED + self.ascii + Style.RESET_ALL
         return self.ascii
 
     def __repr__(self) -> str:
@@ -132,6 +137,8 @@ class Card:
 
     def __str__(self) -> str:
         """Return card as a printable string."""
+        if self.suit.color == 0:
+            return Fore.RED + str(self.rank) + Style.RESET_ALL + str(self.suit)
         return f"{self.rank}{self.suit}"
 
     def __repr__(self) -> str:

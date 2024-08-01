@@ -100,10 +100,8 @@ class Players:
 
     def get_partner(self, player: Player) -> Player:
         for team in self.teams:
-            try:
+            if player in team.players:
                 return team.get_partner(player)
-            except IndexError:
-                continue
 
         raise IndexError
 

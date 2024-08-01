@@ -1,6 +1,7 @@
 """pyeuchre command-line utility."""
 
 from pyeuchre.game import Game
+from pyeuchre.utility.display import Display
 
 
 def main() -> None:
@@ -10,19 +11,16 @@ def main() -> None:
     """
     game = Game()
 
+    display = Display(game)
+
     while game.active:
         game.deal_hand()
 
         if game.hand:  # TODO fix mypy here
-            print(game.hand)
+            display.print(score=True, tricks=False, lead=True, hands=True, dealer=True)
             game.hand.process_call_trump()
 
-            if game.hand.trump_team:
-                print(f"{game.hand.trump_team} call trump!")
-                if game.hand.loner_player:
-                    print(f"{game.hand.loner_player} goes alone!")
-
             while game.hand.active:
-                print(game.hand)
                 game.hand.start_trick()
+                display.print(tricks=True, hands=True, trump=True)
                 game.hand.trick.play()

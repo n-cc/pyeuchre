@@ -104,28 +104,8 @@ class Hand:
         self.deal()
 
     def __str__(self) -> str:
-        """Return Trick as a printable string.
-
-        TODO get much better printing here.
-        """
-        return "Players: {players}\n\nLead: {lead}\n\nHands:\n{cards}\n".format(
-            players=" vs ".join(
-                [
-                    f"{team} ({team.score} points, {team.tricks} tricks)"
-                    for team in self.players.teams
-                ]
-            ),
-            lead=self.lead,
-            cards="\n".join(
-                [
-                    "{name}: {cards}".format(
-                        name=player.name,
-                        cards=", ".join([str(card) for card in player.cards]),
-                    )
-                    for player in self.players
-                ]
-            ),
-        )
+        """Return Hand as a printable string."""
+        return "Players: {self.players}, Trick: {self.trick}, Lead: {self.lead}"
 
     def __repr__(self) -> str:
         """Return Hand as a printable string."""
@@ -163,16 +143,14 @@ class Hand:
 
         # If the lead card is not picked up, let players choose trump
         for player in self.players.ordered(self.players.start_player):
-            choice = player.request_trump_choose(self, self.players.dealer)
+            choice = player.request_trump_choose(self)
             if choice:
-                self.suit = choice
+                self.trump_suit = choice
                 self.trump_team = self.players.get_team(player)
                 if player.request_loner(self):
                     self.loner_player = player
                     self.players.get_partner(player).skip = True
                 return None
-
-        # TODO add third option based on whether we are playing with STD or not
 
     def start_trick(self) -> None:
         """Starts the next trick."""
@@ -180,9 +158,6 @@ class Hand:
             self.trick = Trick(self, self.trump_suit)
         else:
             raise NotActiveError
-
-    def record_trick(self) -> None:
-        """Parses the current trick to determine a winner."""
 
 
 class Trick:
@@ -196,10 +171,7 @@ class Trick:
         self.suit: Suit | None = None
 
     def __str__(self) -> str:
-        """Return Trick as a printable string.
-
-        TODO get much better printing here.
-        """
+        """Return Trick as a printable string."""
         return f"{self.cards}"
 
     def play(self) -> None:
@@ -227,9 +199,9 @@ class Trick:
                     wc = card
                 else:
                     # ... this card is a "trumper (ie jack)", and...
-                    if card.trumper:
+                    if card.rank.trumper:
                         # ... the current winner is not a trumper
-                        if not wc.trumper:
+                        if not wc.rank.trumper:
                             wp = player
                             wc = card
                         # ... the current winner is a trumper, and...

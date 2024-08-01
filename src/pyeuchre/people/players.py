@@ -27,6 +27,7 @@ class Player:
         self.name = name
         self.cards: list[Card] = []
         self.skip = False
+        self.team: Team | None = None
 
     def __str__(self) -> str:
         """Return Player as a printable string."""
@@ -110,8 +111,12 @@ class Human(Player):
             except InvalidInputError:
                 print("Invalid choice.")
 
-    def request_trump_choose(self, hand: "Hand", dealer: Player) -> Suit | None:  # noqa: N803
+    def request_trump_choose(
+        self, hand: "Hand"
+    ) -> Suit | None:  # noqa: N803
         """Request a human player to choose a trump suit.
+
+        TODO: Move some of this logic elsewhere so that game logic is not contained in the Human class.
 
         Args:
             hand (Hand): Hand object that the player can use for context when making a decision.
@@ -121,13 +126,17 @@ class Human(Player):
                 choice = input(f"{self.name}: call a suit (suit/n)? ")
                 try:
                     if not parse_bool(choice):
-                        if dealer is not self:
+                        if hand.players.dealer is not self:
                             return None
                         else:
                             print("You must choose a suit!")
                             continue
                 except InvalidInputError:
-                    return parse_suit(choice)
+                    suit = parse_suit(choice)
+                    if suit == hand.lead.suit:
+                        print("You cannot choose the suit of the lead card.")
+                    else:
+                        return suit
             except InvalidInputError:
                 print("Invalid choice.")
 
@@ -146,6 +155,7 @@ class Human(Player):
                 return card
             except InvalidInputError:
                 print("Invalid choice.")
+
 
 class Bot(Player):
     """Represents a bot player."""
