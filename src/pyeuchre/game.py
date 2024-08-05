@@ -134,7 +134,9 @@ class Hand:
         for player in self.players.ordered(self.players.start_player):
             if player.request_trump_call(self):
                 self.trump_suit = self.lead.suit
-                player.request_replace_card(self, self.lead)
+                player.swap_card(
+                    player.request_replace_card(self, self.lead), self.lead
+                )
                 self.trump_team = self.players.get_team(player)
                 if player.request_loner(self):
                     self.loner_player = player
@@ -168,7 +170,6 @@ class Trick:
         self.hand: Hand = hand
         self.cards = []
         self.trump: Suit = trump
-        self.suit: Suit | None = None
 
     def __str__(self) -> str:
         """Return Trick as a printable string."""
@@ -181,8 +182,6 @@ class Trick:
 
             card = player.request_play_card(self.hand)
 
-            if not self.suit:
-                self.suit = card.suit
             self.cards.append({"player": player, "card": card})
 
         wc = self.cards[0]["card"]
@@ -219,7 +218,7 @@ class Trick:
                         wp = player
                         wc = card
             # if this card is on suit and has a higher rank than the current winner
-            elif card.suit == self.suit and card.rank > wc.rank:
+            elif card.suit == self.cards[0]["card"].suit and card.rank > wc.rank:
                 wp = player
                 wc = card
 
